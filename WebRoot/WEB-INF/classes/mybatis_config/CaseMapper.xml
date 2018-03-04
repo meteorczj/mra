@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.czj.platform.dao.CaseDao">
+
+  <cache flushInterval="360000" readOnly="true" />
+
+  <resultMap type="case" id="basicCaseList">
+    <result column="id" jdbcType="VARCHAR" property="id" />
+    <result column="hosp_num" jdbcType="VARCHAR" property="hosp_num" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="sex" jdbcType="INTEGER" property="sex" />
+    <result column="age" jdbcType="INTEGER" property="age" />
+    <result column="address" jdbcType="VARCHAR" property="address" />
+    <result column="inhosp_date" jdbcType="TIMESTAMP" property="inhosp_date" />
+    <result column="thrombus_part" jdbcType="VARCHAR" property="thrombus_part" />
+    <result column="thrombus_type" jdbcType="VARCHAR" property="thrombus_type" />
+    <result column="sick_date" jdbcType="TIMESTAMP" property="sick_date" />
+    <result column="hosp_days" jdbcType="INTEGER" property="hosp_days" />
+    <result column="is_lung" jdbcType="INTEGER" property="is_lung" />
+    <result column="is_cta" jdbcType="INTEGER" property="is_cta" />
+    <result column="thrombus_reason" jdbcType="VARCHAR" property="thrombus_reason" />
+    <result column="charge_money" jdbcType="DECIMAL" property="charge_money" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="create_time" />
+    <result column="creator" jdbcType="VARCHAR" property="creator" />
+    <result column="modify_time" jdbcType="TIMESTAMP" property="modify_time" />
+    <result column="modifier" jdbcType="VARCHAR" property="modifier" />
+  </resultMap>
+  
+  <sql id="sf_basiccase">
+  	<if test="id != null and id != ''"> and id = #{id}</if>
+  	<if test="hosp_num != null and hosp_num != ''"> and hosp_num = #{hosp_num}</if>
+  	<if test="name != null and name != ''"> and name like CONCAT('%',#{name},'%')</if>
+  	<if test="(sex != null and sex != '') or sex == 0"> and sex = #{sex}</if>
+  	<if test="(age != null and age != '') or age == 0"> and age = #{age}</if>
+  	<if test="address != null and address != ''"> and address = #{address}</if>
+  	<if test="inhosp_date != null and inhosp_date != ''"> and inhosp_date = #{inhosp_date}</if>
+  	<if test="thrombus_part != null and thrombus_part != ''"> and thrombus_part like CONCAT('%',#{thrombus_part},'%')</if>
+  	<if test="thrombus_type != null and thrombus_type != ''"> and thrombus_type = #{thrombus_type}</if>
+  	<if test="sick_date != null and sick_date != ''"> and sick_date = #{sick_date}</if>
+  	<if test="(hosp_days != null and hosp_days != '') or hosp_days == 0"> and hosp_days = #{hosp_days}</if>
+  	<if test="(is_lung != null and is_lung != '') or is_lung == 0"> and is_lung = #{is_lung}</if>
+  	<if test="(is_cta != null and is_cta != '') or is_cta == 0"> and is_cta = #{is_cta}</if>
+  	<if test="thrombus_reason != null and thrombus_reason != ''"> and thrombus_reason = #{thrombus_reason}</if>
+  	<if test="(charge_money != null and charge_money != '') or charge_money == 0"> and charge_money = #{charge_money}</if>
+  	<if test="create_time != null and create_time != ''"> and create_time = #{create_time}</if>
+  	<if test="creator != null and creator != ''"> and creator = #{creator}</if>
+  	<if test="modify_time != null and modify_time != ''"> and modify_time = #{modify_time}</if>
+  	<if test="modifier != null and modifier != ''"> and modifier = #{modifier}</if>
+  </sql>
+  
+  <select id="selectCaseCount" resultType="Integer" parameterType="case">
+  	select count(id) from mra_case where 1=1
+  	<include refid="sf_basiccase"/>
+  	<if test="map.start_date != null and map.end_date != null"> and inhosp_date between #{map.start_date} and #{map.end_date}</if>
+  </select>
+  
+  <!-- 分页查询菜单列表和无权限菜单树 -->
+  <select id="selectCaseList" resultMap="basicCaseList" parameterType="case">
+  	SELECT * FROM mra_case WHERE 1 = 1
+  	<include refid="sf_basiccase"/>
+  	<if test="map.start_date != null and map.end_date != null"> and inhosp_date between #{map.start_date} and #{map.end_date}</if>
+  	<if test="start != null and start != 0 and rows != null and rows != 0"> limit #{start}, #{rows}</if>
+  	order by create_time desc
+  </select>
+  
+  <select id="selectCase" resultMap="basicCaseList" parameterType="case">
+  	select * from mra_case where 1=1
+  	<include refid="sf_basiccase"/>
+  </select>
+  
+  <insert id="insertCase" parameterType="case" flushCache="true">
+  	<!-- <selectKey resultType="String" order="BEFORE" keyProperty="id">
+    	select UUID() as id
+    </selectKey> -->
+    insert into mra_case
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      id,
+      <if test="hosp_num != null and hosp_num != ''">hosp_num,</if>
+  	  <if test="name != null and name != ''">name,</if>
+  	  <if test="(sex != null and sex != '') or sex == 0">sex,</if>
+  	  <if test="(age != null and age != '') or age == 0">age,</if>
+  	  <if test="address != null and address != ''">address,</if>
+  	  <if test="inhosp_date != null and inhosp_date != ''">inhosp_date,</if>
+  	  <if test="thrombus_part != null and thrombus_part != ''">thrombus_part,</if>
+  	  <if test="thrombus_type != null and thrombus_type != ''">thrombus_type,</if>
+  	  <if test="sick_date != null and sick_date != ''">sick_date,</if>
+  	  <if test="(hosp_days != null and hosp_days != '') or hosp_days == 0">hosp_days,</if>
+  	  <if test="(is_lung != null and is_lung != '') or is_lung == 0">is_lung,</if>
+  	  <if test="(is_cta != null and is_cta != '') or is_cta == 0">is_cta,</if>
+  	  <if test="thrombus_reason != null and thrombus_reason != ''">thrombus_reason,</if>
+  	  <if test="(charge_money != null and charge_money != '') or charge_money == 0">charge_money,</if>
+  	  <if test="create_time != null and create_time != ''">create_time,</if>
+  	  <if test="creator != null and creator != ''">creator,</if>
+  	  <if test="modify_time != null and modify_time != ''">modify_time,</if>
+  	  <if test="modifier != null and modifier != ''">modifier,</if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      #{id,jdbcType=VARCHAR},
+  	  <if test="hosp_num != null and hosp_num != ''">#{hosp_num,jdbcType=VARCHAR},</if>
+  	  <if test="name != null and name != ''">#{name,jdbcType=VARCHAR},</if>
+  	  <if test="(sex != null and sex != '') or sex == 0">#{sex,jdbcType=INTEGER},</if>
+  	  <if test="(age != null and age != '') or age == 0">#{age,jdbcType=INTEGER},</if>
+  	  <if test="address != null and address != ''">#{address,jdbcType=VARCHAR},</if>
+  	  <if test="inhosp_date != null and inhosp_date != ''">#{inhosp_date,jdbcType=TIMESTAMP},</if>
+  	  <if test="thrombus_part != null and thrombus_part != ''">#{thrombus_part,jdbcType=VARCHAR},</if>
+  	  <if test="thrombus_type != null and thrombus_type != ''">#{thrombus_type,jdbcType=VARCHAR},</if>
+  	  <if test="sick_date != null and sick_date != ''">#{sick_date,jdbcType=TIMESTAMP},</if>
+  	  <if test="(hosp_days != null and hosp_days != '') or hosp_days == 0">#{hosp_days,jdbcType=INTEGER},</if>
+  	  <if test="(is_lung != null and is_lung != '') or is_lung == 0">#{is_lung,jdbcType=INTEGER},</if>
+  	  <if test="(is_cta != null and is_cta != '') or is_cta == 0">#{is_cta,jdbcType=INTEGER},</if>
+  	  <if test="thrombus_reason != null and thrombus_reason != ''">#{thrombus_reason,jdbcType=VARCHAR},</if>
+  	  <if test="(charge_money != null and charge_money != '') or charge_money == 0">#{charge_money,jdbcType=DECIMAL},</if>
+  	  <if test="create_time != null and create_time != ''">#{create_time,jdbcType=TIMESTAMP},</if>
+  	  <if test="creator != null and creator != ''">#{creator,jdbcType=VARCHAR},</if>
+  	  <if test="modify_time != null and modify_time != ''">#{modify_time,jdbcType=TIMESTAMP},</if>
+  	  <if test="modifier != null and modifier != ''">#{modifier,jdbcType=VARCHAR},</if>
+    </trim>
+  </insert>
+  
+  <update id="updateCase" parameterType="case" flushCache="true">
+    update mra_case
+    <set>
+   	  <trim suffixOverrides=",">
+	  	<if test="hosp_num != null and hosp_num != ''">hosp_num = #{hosp_num,jdbcType=VARCHAR},</if>
+	  	<if test="name != null and name != ''">name = #{name,jdbcType=VARCHAR},</if>
+	  	<if test="(sex != null and sex != '') or sex == 0">sex = #{sex,jdbcType=INTEGER},</if>
+	  	<if test="(age != null and age != '') or age == 0">age = #{age,jdbcType=INTEGER},</if>
+	  	<if test="address != null and address != ''">address = #{address,jdbcType=VARCHAR},</if>
+	  	<if test="inhosp_date != null and inhosp_date != ''">inhosp_date = #{inhosp_date,jdbcType=TIMESTAMP},</if>
+	  	<if test="thrombus_part != null and thrombus_part != ''">thrombus_part = #{thrombus_part,jdbcType=VARCHAR},</if>
+	  	<if test="thrombus_type != null and thrombus_type != ''">thrombus_type = #{thrombus_type,jdbcType=VARCHAR},</if>
+	  	<if test="sick_date != null and sick_date != ''">sick_date = #{sick_date,jdbcType=TIMESTAMP},</if>
+	  	<if test="(hosp_days != null and hosp_days != '') or hosp_days == 0">hosp_days = #{hosp_days,jdbcType=INTEGER},</if>
+	  	<if test="(is_lung != null and is_lung != '') or is_lung == 0">is_lung = #{is_lung,jdbcType=INTEGER},</if>
+	  	<if test="(is_cta != null and is_cta != '') or is_cta == 0">is_cta = #{is_cta,jdbcType=INTEGER},</if>
+	  	<if test="thrombus_reason != null and thrombus_reason != ''">thrombus_reason = #{thrombus_reason,jdbcType=VARCHAR},</if>
+	  	<if test="(charge_money != null and charge_money != '') or charge_money == 0">charge_money = #{charge_money,jdbcType=DECIMAL},</if>
+	  	<if test="create_time != null and create_time != ''">create_time = #{create_time,jdbcType=TIMESTAMP},</if>
+	  	<if test="creator != null and creator != ''">creator = #{creator,jdbcType=VARCHAR},</if>
+	  	<if test="modify_time != null and modify_time != ''">modify_time = #{modify_time,jdbcType=TIMESTAMP},</if>
+	  	<if test="modifier != null and modifier != ''">modifier = #{modifier,jdbcType=VARCHAR},</if>
+      </trim>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  
+  <delete id="deleteCase" parameterType="case" flushCache="true">
+    delete from mra_case where 1=1
+    <choose>
+    	<when test="id != null"> and id = #{id,jdbcType=VARCHAR}</when>
+    	<otherwise>
+    		and id in
+			<foreach collection="map.pks" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+    	</otherwise>
+    </choose>
+  </delete>
+  
+</mapper>

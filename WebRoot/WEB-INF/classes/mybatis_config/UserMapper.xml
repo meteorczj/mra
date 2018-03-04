@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.czj.platform.dao.UserDao">
+
+  <cache flushInterval="360000" readOnly="true" />
+
+  <resultMap type="user" id="basicUserList">
+    <result column="id" jdbcType="VARCHAR" property="id" />
+    <result column="username" jdbcType="VARCHAR" property="username" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="is_invoked" jdbcType="INTEGER" property="is_invoked" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="create_time" />
+    <result column="modify_time" jdbcType="TIMESTAMP" property="modify_time" />
+    <result column="creator" jdbcType="VARCHAR" property="creator" />
+    <result column="modifier" jdbcType="VARCHAR" property="modifier" />
+  </resultMap>
+  
+  <sql id="sf_basicuser">
+  	<if test="id != null and id != ''"> and id = #{id}</if>
+  	<if test="username != null and username != ''"> and username = #{username}</if>
+  	<if test="password != null and password != ''"> and password = #{password}</if>
+  	<if test="(is_invoked != null and is_invoked != '') or is_invoked == 0"> and is_invoked = #{is_invoked}</if>
+  	<if test="remark != null and remark != ''"> and remark = #{remark}</if>
+  	<if test="create_time != null and create_time != ''"> and create_time = #{create_time}</if>
+  	<if test="modify_time != null and modify_time != ''"> and modify_time = #{modify_time}</if>
+  	<if test="creator != null and creator != ''"> and creator = #{creator}</if>
+  	<if test="modifier != null and modifier != ''"> and modifier = #{modifier}</if>
+  </sql>
+  
+  <select id="selectUserCount" resultType="Integer" parameterType="user">
+  	select count(id) from t_user where 1=1
+  	<include refid="sf_basicuser"/>
+  </select>
+  
+  <select id="selectUserList" resultMap="basicUserList" parameterType="user">
+  	SELECT * FROM t_user WHERE 1 = 1
+  	<include refid="sf_basicuser"/>
+  	<if test="start != null and start != 0 and rows != null and rows != 0"> limit #{start}, #{rows}</if>
+  </select>
+  
+  <select id="selectUser" resultMap="basicUserList" parameterType="user">
+  	select * from t_user where 1=1
+  	<include refid="sf_basicuser"/>
+  </select>
+  
+  <insert id="insertUser" parameterType="user" flushCache="true">
+  	<selectKey resultType="String" order="BEFORE" keyProperty="key">
+    	select UUID() as id
+    </selectKey>
+    insert into t_user
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null and id != ''" >id,</if>
+      <if test="username != null and username != ''" >username,</if>
+      <if test="password != null and password != ''" >password,</if>
+      <if test="(is_invoked != null and is_invoked != '') or is_invoked == 0" >is_invoked,</if>
+      <if test="remark != null and remark != ''" >remark,</if>
+      <if test="create_time != null and create_time != ''" >create_time,</if>
+      <if test="modify_time != null and modify_time != ''" >modify_time,</if>
+      <if test="creator != null and creator != ''" >creator,</if>
+      <if test="modifier != null and modifier != ''" >modifier,</if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null and id != ''" >#{id,jdbcType=VARCHAR},</if>
+      <if test="username != null and username != ''" >#{username,jdbcType=VARCHAR},</if>
+      <if test="password != null and password != ''" >#{password,jdbcType=VARCHAR},</if>
+      <if test="(is_invoked != null and is_invoked != '') or is_invoked == 0" >#{(is_invoked,jdbcType=INTEGER},</if>
+      <if test="remark != null and remark != ''" >#{remark,jdbcType=VARCHAR},</if>
+      <if test="create_time != null and create_time != ''" >#{create_time,jdbcType=TIMESTAMP},</if>
+      <if test="modify_time != null and modify_time != ''" >#{modify_time,jdbcType=TIMESTAMP},</if>
+      <if test="creator != null and creator != ''" >#{creator,jdbcType=VARCHAR},</if>
+      <if test="modifier != null and modifier != ''" >#{modifier,jdbcType=VARCHAR},</if>
+    </trim>
+  </insert>
+  
+  <update id="updateUser" parameterType="user" flushCache="true">
+    update t_user
+    <set>
+   	  <trim suffixOverrides=",">
+	  	<if test="username != null and username != ''">username = #{username,jdbcType=VARCHAR},</if>
+	  	<if test="password != null and password != ''">path = #{password,jdbcType=VARCHAR},</if>
+	  	<if test="(is_invoked != null and is_invoked != '') or is_invoked == 0">is_invoked = #{is_invoked,jdbcType=INTEGER},</if>
+	  	<if test="remark != null and remark != ''">remark = #{remark,jdbcType=VARCHAR},</if>
+	  	<if test="create_time != null and create_time != ''">create_time = #{create_time,jdbcType=TIMESTAMP},</if>
+	  	<if test="modify_time != null and modify_time != ''">modify_time = #{modify_time,jdbcType=TIMESTAMP},</if>
+	  	<if test="creator != null and creator != ''">creator = #{creator,jdbcType=VARCHAR},</if>
+	  	<if test="modifier != null and modifier != ''">modifier = #{modifier,jdbcType=VARCHAR},</if>
+      </trim>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  
+  <delete id="deleteUser" parameterType="user" flushCache="true">
+    delete from t_user where 1=1
+    <choose>
+    	<when test="id != null"> and id = #{id,jdbcType=VARCHAR}</when>
+    	<otherwise>
+    		and id in
+			<foreach collection="map.pks" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+    	</otherwise>
+    </choose>
+  </delete>
+  
+</mapper>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.czj.platform.dao.AttachmentDao">
+
+  <cache flushInterval="360000" readOnly="true" />
+
+  <resultMap type="attachment" id="basicAttachmentList">
+    <result column="id" jdbcType="VARCHAR" property="id" />
+    <result column="case_id" jdbcType="VARCHAR" property="case_id" />
+    <result column="file_name" jdbcType="VARCHAR" property="file_name" />
+    <result column="file_type" jdbcType="VARCHAR" property="file_type" />
+    <result column="file_path" jdbcType="VARCHAR" property="file_path" />
+  </resultMap>
+  
+  <sql id="sf_basicattachment">
+  	<if test="id != null and id != ''"> and id = #{id}</if>
+  	<if test="case_id != null and case_id != ''"> and case_id = #{case_id}</if>
+  	<if test="file_name != null and file_name != ''"> and file_name = #{file_name}</if>
+  	<if test="file_type != null and file_type != ''"> and file_type = #{file_type}</if>
+  	<if test="file_path != null and file_path != ''"> and file_path = #{file_path}</if>
+  </sql>
+  
+  <select id="selectAttachmentCount" resultType="Integer" parameterType="attachment">
+  	select count(id) from t_attachment where 1=1
+  	<include refid="sf_basicattachment"/>
+  </select>
+  
+  <select id="selectAttachmentList" resultMap="basicAttachmentList" parameterType="attachment">
+  	SELECT * FROM t_attachment WHERE 1 = 1
+  	<include refid="sf_basicattachment"/>
+  	<if test="start != null and start != 0 and rows != null and rows != 0"> limit #{start}, #{rows}</if>
+  	order by file_name
+  </select>
+  
+  <select id="selectAttachment" resultMap="basicAttachmentList" parameterType="attachment">
+  	select * from t_attachment where 1=1
+  	<include refid="sf_basicattachment"/>
+  </select>
+  
+  <insert id="insertAttachment" parameterType="attachment" flushCache="true">
+  	<selectKey resultType="String" order="BEFORE" keyProperty="id">
+    	select UUID() as id
+    </selectKey>
+    insert into t_attachment
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      id,
+      <if test="case_id != null and case_id != ''">case_id,</if>
+  	  <if test="file_name != null and file_name != ''">file_name,</if>
+  	  <if test="file_type != null and file_type != ''">file_type,</if>
+  	  <if test="file_path != null and file_path != ''">file_path,</if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      #{id,jdbcType=VARCHAR},
+  	  <if test="case_id != null and case_id != ''">#{case_id,jdbcType=VARCHAR},</if>
+  	  <if test="file_name != null and file_name != ''">#{file_name,jdbcType=VARCHAR},</if>
+  	  <if test="file_type != null and file_type != ''">#{file_type,jdbcType=VARCHAR},</if>
+  	  <if test="file_path != null and file_path != ''">#{file_path,jdbcType=VARCHAR},</if>
+    </trim>
+  </insert>
+  
+  <update id="updateAttachment" parameterType="attachment" flushCache="true">
+    update t_attachment
+    <set>
+   	  <trim suffixOverrides=",">
+	  	<if test="case_id != null and case_id != ''">case_id = #{case_id,jdbcType=VARCHAR},</if>
+	  	<if test="file_name != null and file_name != ''">file_name = #{file_name,jdbcType=VARCHAR},</if>
+	  	<if test="file_type != null and file_type != ''">file_type = #{file_type,jdbcType=VARCHAR},</if>
+	  	<if test="file_path != null and file_path != ''">file_path = #{file_path,jdbcType=VARCHAR},</if>
+      </trim>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  
+  <delete id="deleteAttachment" parameterType="attachment" flushCache="true">
+    delete from t_attachment where 1=1
+    <choose>
+    	<when test="id != null and id != ''"> and id = #{id,jdbcType=VARCHAR}</when>
+    	<when test="case_id != null and case_id != ''"> and case_id = #{case_id,jdbcType=VARCHAR}</when>
+    	<otherwise>
+    		and id in
+			<foreach collection="map.pks" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+    	</otherwise>
+    </choose>
+  </delete>
+  
+</mapper>

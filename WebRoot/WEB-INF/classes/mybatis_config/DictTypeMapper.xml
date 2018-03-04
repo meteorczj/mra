@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.czj.platform.dao.DictTypeDao">
+
+  <cache flushInterval="360000" readOnly="true" />
+
+  <resultMap type="dictType" id="basicDictTypeList">
+    <result column="id" jdbcType="VARCHAR" property="id" />
+    <result column="code" jdbcType="VARCHAR" property="code" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+  </resultMap>
+  
+  <sql id="sf_basicdictType">
+  	<if test="id != null and id != ''"> and id = #{id}</if>
+  	<if test="code != null and code != ''"> and code = #{code}</if>
+  	<if test="name != null and name != ''"> and name = #{name}</if>
+  </sql>
+  
+  <select id="selectDictTypeCount" resultType="Integer" parameterType="dictType">
+  	select count(id) from t_dict_type where 1=1
+  	<include refid="sf_basicdictType"/>
+  </select>
+  
+  <select id="selectDictTypeList" resultMap="basicDictTypeList" parameterType="dictType">
+  	SELECT * FROM t_dict_type WHERE 1 = 1
+  	<include refid="sf_basicdictType"/>
+  	<if test="start != null and start != 0 and rows != null and rows != 0"> limit #{start}, #{rows}</if>
+  </select>
+  
+  <select id="selectDictType" resultMap="basicDictTypeList" parameterType="dictType">
+  	select * from t_dict_type where 1=1
+  	<include refid="sf_basicdictType"/>
+  </select>
+  
+  <insert id="insertDictType" parameterType="dictType" flushCache="true">
+  	<selectKey resultType="String" order="BEFORE" keyProperty="id">
+    	select UUID() as id
+    </selectKey>
+    insert into t_dict_type
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      id,
+      <if test="code != null and code != ''" >code,</if>
+      <if test="name != null and name != ''" >name,</if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      #{id,jdbcType=VARCHAR},
+      <if test="code != null and code != ''" >#{code,jdbcType=VARCHAR},</if>
+      <if test="name != null and name != ''" >#{name,jdbcType=VARCHAR},</if>
+    </trim>
+  </insert>
+  
+  <update id="updateDictType" parameterType="dictType" flushCache="true">
+    update t_dict_type
+    <set>
+   	  <trim suffixOverrides=",">
+	  	<if test="code != null and code != ''">code = #{code,jdbcType=VARCHAR},</if>
+	  	<if test="name != null and name != ''">name = #{name,jdbcType=VARCHAR},</if>
+      </trim>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  
+  <delete id="deleteDictType" parameterType="dictType" flushCache="true">
+    delete from t_dict_type where 1=1
+    <choose>
+    	<when test="id != null"> and id = #{id,jdbcType=VARCHAR}</when>
+    	<otherwise>
+    		and id in
+			<foreach collection="map.pks" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+    	</otherwise>
+    </choose>
+  </delete>
+  
+</mapper>

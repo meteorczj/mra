@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:jaxws="http://cxf.apache.org/jaxws"
+    xmlns:cxf="http://cxf.apache.org/core"
+	xsi:schemaLocation="   
+    http://www.springframework.org/schema/beans   
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd   
+    http://www.springframework.org/schema/context   
+    http://www.springframework.org/schema/context/spring-context-3.0.xsd
+    http://cxf.apache.org/jaxws    
+    http://cxf.apache.org/schemas/jaxws.xsd
+    http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
+	<!-- 需要将applicationContext-bean.xml导入，否则不能够解析到Controller -->
+	
+	<!-- WebService CXF -->
+	<import resource="classpath:META-INF/cxf/cxf.xml" />
+    <!-- <import resource="classpath:META-INF/cxf/cxf-extension-soap.xml" /> -->
+    <import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
+    <!-- 使用全注解模式 -->
+    <bean id="webServicesAgent" class="org.apache.cxf.spring.remoting.Jsr181HandlerMapping">  
+        <property name="urlPrefix"><value>/</value></property>  
+    </bean> 
+  	<!--
+    <bean id="helloWorld" class="com.czj.platform.webservice.impl.HelloWorldImpl" /> 
+     implementor 指定 WebService 实现类, address 指定访问地址 implementor="#helloWorld"
+    <jaxws:endpoint id="helloWorld" implementor="com.czj.platform.webservice.impl.HelloWorldImpl" address="/helloworld" publish="true" />
+     -->
+     
+	<!-- 注册Annotation -->	
+	<bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping" />
+
+	<bean class ="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" >  
+	    <property name="messageConverters">  
+		  	<list>  
+		   		<ref bean="mappingJacksonHttpMessageConverter" /><!-- json转换器 -->  
+		  	</list>  
+	 	</property>  
+	</bean>   
+	   
+	<!-- 避免IE执行AJAX时,返回JSON出现下载文件 -->
+	<bean name="mappingJacksonHttpMessageConverter" class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter" >
+		<property name="supportedMediaTypes">
+	   		<list>
+	    		<value>text/html;charset=UTF-8</value>
+	    		<value>application/json</value>
+	   		</list>
+	  	</property>
+	</bean>
+	
+	<!-- 文件上传处理类 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="defaultEncoding" value="utf-8" />
+		<property name="maxUploadSize" value="104857600" />
+		<property name="maxInMemorySize" value="4096" />
+	</bean>
+	
+    <!-- 跳转视图配置 -->
+	<bean name="viewResolver" 
+	      class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass"><!-- 跳转到JSP的视图 -->
+			<value>org.springframework.web.servlet.view.JstlView</value>
+		</property>
+		<!-- 相关JSP页面路径配置 -->
+		<property name="prefix"><!-- JSP页面前缀 -->
+			<value>/WEB-INF/jsp/</value>
+		</property>
+		<property name="suffix"><!-- JSP页面后缀 -->
+			<value>.jsp</value>
+		</property>
+	</bean>
+	
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<bean class="com.czj.platform.interceptor.SessionInterceptor">
+				<property name="loginPage">
+					<value>/index.jsp</value>
+				</property>
+				<property name="excludeUrls">
+					<list>
+						<value>/demoController.do</value>
+						<value>/loginController.do</value>
+						<value>/weixinController/check.do</value>
+					</list>
+				</property>
+			</bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+	
+	<!--
+		设置全局异常处理方式。！注意，如果使用XML配置了异常处理方式， 那么使用Annotation处理异常的方式将不再被使用。
+	-->
+	
+	<!-- 使用注解的包，包括子集 -->
+	<context:component-scan base-package="com.czj.platform.controller,com.czj.platform.service,com.czj.platform.webservice">
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+	</context:component-scan>
+	
+</beans>

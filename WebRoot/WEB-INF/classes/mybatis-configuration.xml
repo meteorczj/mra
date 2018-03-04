@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+	PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<settings>
+		<setting name="cacheEnabled" value="true"/>  
+		<setting name="lazyLoadingEnabled" value="true"/>  
+		<setting name="multipleResultSetsEnabled" value="true"/>  
+		<setting name="useColumnLabel" value="true"/>  
+		<setting name="useGeneratedKeys" value="true"/>  
+		<setting name="defaultExecutorType" value="SIMPLE"/>  
+		<setting name="defaultStatementTimeout" value="25000"/>
+	</settings>
+	<typeAliases>
+		<typeAlias type="com.czj.platform.entity.Module" alias="module" />
+		<typeAlias type="com.czj.platform.entity.User" alias="user" />
+		<typeAlias type="com.czj.platform.entity.DictType" alias="dictType" />
+		<typeAlias type="com.czj.platform.entity.DictData" alias="dictData" />
+		<typeAlias type="com.czj.platform.entity.Case" alias="case" />
+		<typeAlias type="com.czj.platform.entity.Attachment" alias="attachment" />
+	</typeAliases>
+	
+	<!--<environments default="MySQL">
+		<environment id="MySQL">
+			<transactionManager type="JDBC" />
+			<dataSource type="POOLED">
+				<property name="driver" value="${driver}" />
+				<property name="url" value="${url}" />
+				<property name="username" value="${username}" />
+				<property name="password" value="${password}" />
+			</dataSource>
+		</environment>
+	</environments>
+	-->
+	
+	<!-- 此处在<property name="mapperLocations" value="classpath:mybatis_config/*.xml"></property>配置 -->
+	<!-- 
+	<mappers>
+		<mapper resource="mybatis_config/ModuleMapper.xml"/>
+		<mapper resource="mybatis_config/UserMapper.xml"/>
+	</mappers>
+	 -->
+</configuration>

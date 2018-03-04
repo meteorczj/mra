@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.czj.platform.dao.ModuleDao">
+
+  <cache flushInterval="360000" readOnly="true" />
+
+  <resultMap type="module" id="basicModuleList">
+    <result column="id" jdbcType="VARCHAR" property="id" />
+    <result column="index" jdbcType="INTEGER" property="index" />
+    <result column="path" jdbcType="VARCHAR" property="path" />
+    <result column="parent" jdbcType="VARCHAR" property="parent" />
+    <result column="depth" jdbcType="INTEGER" property="depth" />
+    <result column="is_group" jdbcType="INTEGER" property="isGroup" />
+    <result column="is_invoked" jdbcType="INTEGER" property="isInvoked" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="pinyin_code" jdbcType="VARCHAR" property="pinyin_code" />
+    <result column="url" jdbcType="VARCHAR" property="url" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+  </resultMap>
+  
+  <sql id="sf_basicmodule">
+  	<if test="id != null"> and id = #{id}</if>
+  	<if test="index != null"> and index = #{index}</if>
+  	<if test="path != null"> and path = #{path}</if>
+  	<if test="depth != null"> and depth = #{depth}</if>
+  	<if test="isGroup != null"> and is_group = #{isGroup}</if>
+  	<if test="isInvoked != null"> and is_invoked = #{isInvoked}</if>
+  	<if test="name != null"> and name = #{name}</if>
+  	<if test="title != null"> and title = #{title}</if>
+  	<if test="pinyin_code != null"> and pinyin_code = #{pinyin_code}</if>
+  	<if test="url != null"> and url = #{url}</if>
+  	<if test="remark != null"> and remark = #{remark}</if>
+  	<if test="parent != null"> and parent = #{parent}</if>
+  </sql>
+  
+  <select id="selectModuleCount" resultType="Integer" parameterType="module">
+  	select count(id) from t_module where 1=1
+  	<include refid="sf_basicmodule"/>
+  </select>
+  
+  <!-- 分页查询菜单列表和无权限菜单树 -->
+  <select id="selectModuleList" resultMap="basicModuleList" parameterType="module">
+  	SELECT * FROM t_module WHERE 1 = 1
+  	<include refid="sf_basicmodule"/>
+  	<if test="start != null and start != 0 and rows != null and rows != 0"> limit #{start}, #{rows}</if>
+  </select>
+  
+  <select id="selectModule" resultMap="basicModuleList" parameterType="module">
+  	select * from t_module where 1=1
+  	<include refid="sf_basicmodule"/>
+  </select>
+  
+  <!-- 返回数据库中最大的index值 -->
+  <select id="selectMaxIndex" resultType="Long" parameterType="module">
+  	select max(`index`) from t_module where 1=1
+  	<include refid="sf_basicmodule"/>
+  </select>
+  
+  <insert id="insertModule" parameterType="module" flushCache="true">
+  	<selectKey resultType="String" order="BEFORE" keyProperty="id">
+    	select UUID() as id
+    </selectKey>
+    insert into t_module
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      id,
+      <if test="index != null" >`index`,</if>
+      <if test="path != null" >path,</if>
+      <if test="parent != null" >parent,</if>
+      <if test="depth != null" >depth,</if>
+      <if test="isGroup != null" >is_group,</if>
+      <if test="isInvoked != null" >is_invoked,</if>
+      <if test="name != null" >name,</if>
+      <if test="title != null" >title,</if>
+      <if test="pinyin_code != null" >pinyin_code,</if>
+      <if test="url != null" >url,</if>
+      <if test="remark != null" >remark,</if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      #{id,jdbcType=VARCHAR},
+      <if test="index != null" >#{index,jdbcType=INTEGER},</if>
+      <if test="path != null" >#{path,jdbcType=VARCHAR},</if>
+      <if test="parent != null" >#{parent,jdbcType=VARCHAR},</if>
+      <if test="depth != null" >#{depth,jdbcType=INTEGER},</if>
+      <if test="isGroup != null" >#{isGroup,jdbcType=INTEGER},</if>
+      <if test="isInvoked != null" >#{isInvoked,jdbcType=INTEGER},</if>
+      <if test="name != null" >#{name,jdbcType=VARCHAR},</if>
+      <if test="title != null" >#{title,jdbcType=VARCHAR},</if>
+      <if test="pinyin_code != null" >#{pinyin_code,jdbcType=VARCHAR},</if>
+      <if test="url != null" >#{url,jdbcType=VARCHAR},</if>
+      <if test="remark != null" >#{remark,jdbcType=VARCHAR},</if>
+    </trim>
+  </insert>
+  
+  <update id="updateModule" parameterType="module" flushCache="true">
+    update t_module
+    <set>
+   	  <trim suffixOverrides=",">
+	  	<if test="index != null">`index` = #{index,jdbcType=INTEGER},</if>
+	  	<if test="path != null">path = #{path,jdbcType=VARCHAR},</if>
+	  	<if test="parent != null">parent = #{parent,jdbcType=VARCHAR},</if>
+	  	<if test="depth != null">depth = #{depth,jdbcType=INTEGER},</if>
+	  	<if test="isGroup != null">is_group = #{isGroup,jdbcType=INTEGER},</if>
+	  	<if test="isInvoked != null">is_invoked = #{isInvoked,jdbcType=INTEGER},</if>
+	  	<if test="name != null">name = #{name,jdbcType=VARCHAR},</if>
+	  	<if test="title != null">title = #{title,jdbcType=VARCHAR},</if>
+	  	<if test="pinyin_code != null">pinyin_code = #{pinyin_code,jdbcType=VARCHAR},</if>
+	  	<if test="url != null">url = #{url,jdbcType=VARCHAR},</if>
+	  	<if test="remark != null">remark = #{remark,jdbcType=VARCHAR},</if>
+      </trim>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  
+  <delete id="deleteModule" parameterType="module" flushCache="true">
+    delete from t_module where 1=1
+    <choose>
+    	<when test="id != null"> and id = #{id,jdbcType=VARCHAR}</when>
+    	<when test="parent != null"> and parent = #{parent,jdbcType=VARCHAR}</when>
+    	<otherwise>
+    		and id in
+			<foreach collection="map.pks" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+    	</otherwise>
+    </choose>
+  </delete>
+  
+</mapper>

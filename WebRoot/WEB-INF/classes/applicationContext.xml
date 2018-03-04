@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:jaxws="http://cxf.apache.org/jaxws"
+	xmlns:cxf="http://cxf.apache.org/core"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+				http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+				http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+				http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
+				http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+				http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd">
+
+	<!-- 增加default-autowire="byName",会报错：Could not load driverClass ${jdbc.driverClassName} -->
+	
+	<!-- 自动扫描包含有@Component、@Service和 @Controller注解的类，自动注册为bean -->
+	<!-- 排除 @Controller类-->
+	<context:component-scan base-package="com.czj.platform.controller,com.czj.platform.service,com.czj.platform.webservice">
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+	</context:component-scan>
+	
+	<!-- ============================== 导入数据库配置文件 ==================================== -->
+	<context:property-placeholder location="classpath:jdbc.properties"/>
+	<!-- 启用了 Spring 对 Annotation 的支持 -->
+	<!-- <context:annotation-config/> -->
+	<!-- 可通过注解控制事务 -->
+	<tx:annotation-driven />
+	
+	<!-- 定义资源文件位置，在java中实例化此实体，进行配置文件数据读取 -->
+	<bean id="messageSource"
+		class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<property name="basenames">
+			<list>
+				<value>classpath:systemConfig</value>
+			</list>
+		</property>
+		<property name="cacheSeconds" value="0" />
+	</bean>
+	
+	<!-- ============================== 数据库配置 ==================================== -->
+	<bean name="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName"><value>${jdbc.driverClassName}</value></property>
+		<property name="url"><value>${jdbc.url}</value></property>
+		<property name="username"><value>${jdbc.username}</value></property>
+		<property name="password"><value>${jdbc.password}</value></property>
+		<property name="timeBetweenEvictionRunsMillis" value="${jdbc.timeBetweenEvictionRunsMillis}" />
+		<property name="testWhileIdle" value="${jdbc.testWhileIdle}" />
+		<property name="testOnBorrow"  value="${jdbc.testOnBorrow}" />
+		<property name="validationQuery" value="${jdbc.validationQuery}" />
+	</bean>
+	
+	<!-- ================================ MyBatis SqlSession配置 ========================================= -->
+	<!-- 使用SqlSessionFactoryBean工厂产生SqlSession对象，方便后期注入Dao -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="configLocation" value="classpath:mybatis-configuration.xml"></property>
+		<!-- 如果mybatis-configuration.xml中无mappers标签，则增加下面的配置 -->
+		<property name="mapperLocations" value="classpath:mybatis_config/*Mapper.xml"></property>
+	</bean>
+	
+	<!-- ======================= 自动扫描，将Mapper接口生成代理注入到Spring中 ============================= -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+		<property name="basePackage" value="com.czj.platform.dao" />
+	</bean>
+	
+	<!-- ================================= 事务控制相关 ============================================= -->
+	<!-- 1.配置事务管理器 -->
+   	<bean name="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">   
+    	<property name="dataSource" ref="dataSource"></property>
+ 	</bean>   
+	
+	<!-- 2.配置事务通知-->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="delete*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception" />
+			<tx:method name="insert*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception" />
+			<tx:method name="update*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception" />
+
+			<tx:method name="find*" propagation="SUPPORTS" />
+			<tx:method name="get*" propagation="SUPPORTS" />
+			<tx:method name="select*" propagation="SUPPORTS" />
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- 3.配置切面 -->
+	<aop:config>
+		<aop:pointcut id="pc" expression="execution(* com.czj..service.*Service*.*(..))" />
+		<aop:advisor pointcut-ref="pc" advice-ref="txAdvice" />
+	</aop:config>
+	
+</beans>
